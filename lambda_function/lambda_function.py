@@ -4,15 +4,13 @@ import qrcode
 import io
 import base64
 
-S3_BUCKET_NAME = 'qr-code-generator-bucket-yash'
-
 # Initialize a session using Amazon S3
 s3 = boto3.client('s3')
 
 def lambda_handler(event, context):
     # Parse the URL from the event
     # body = json.loads(event['body'])
-    url = body['url']
+    url = event['url']
     
     # Generate QR code
     img = qrcode.make(url)
@@ -24,12 +22,12 @@ def lambda_handler(event, context):
     filename = url.split("://")[1].replace("/", "_") + '.png'
     
     # Upload the QR code to the S3 bucket
-    s3.put_object(Bucket=S3_BUCKET_NAME, Key=filename, Body=img_bytes, ContentType='image/png', ACL='public-read')
+    s3.put_object(Bucket='qr-code-generator-bucket-yash', Key=filename, Body=img_bytes, ContentType='image/png', ACL='public-read')
     
     # Generate the URL of the uploaded QR code
-    location = s3.get_bucket_location(Bucket=S3_BUCKET_NAME)['LocationConstraint']
+    location = s3.get_bucket_location(Bucket='qr-code-generator-bucket-yash')['LocationConstraint']
     region = '' if location is None else f'{location}'
-    qr_code_url = f"https://s3-{region}.amazonaws.com/{S3_BUCKET_NAME}/{filename}"
+    qr_code_url = f"https://s3-{region}.amazonaws.com/{'qr-code-generator-bucket-yash'}/{filename}"
     
     return {
         'statusCode': 200,
